@@ -8,4 +8,4 @@ main :: IO ()
 main = forever $ do
     putStr "> "
     hFlush stdout
-    getLine >>= print . either id show . calculate . filter (/= ' ')
+    getLine >>= putStrLn . either id show . calculate . filter (/= ' ')
