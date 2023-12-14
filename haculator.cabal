@@ -30,6 +30,7 @@ library
     -- other-extensions:
     build-depends:    base ^>=4.17.2.0,
                       megaparsec ^>=9.6.1,
+                      containers,
                       text
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -53,5 +54,8 @@ test-suite haculator-test
     default-language: Haskell2010
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
-    main-is:          MyLibTest.hs
-    build-depends:    base ^>=4.17.2.0
+    main-is:          Tests.hs
+    build-depends:    base ^>=4.17.2.0,
+                      QuickCheck ^>=2.14.3,
+                      hspec >=2.11.7,
+                      haculator
