@@ -1,9 +1,11 @@
 module Main where
 
+import Calculator
 import Control.Monad
-import qualified MyLib (someFunc)
+import System.IO
 
 main :: IO ()
 main = forever $ do
-    putStrLn "Hello, Haskell!"
-    MyLib.someFunc
+    putStr "> "
+    hFlush stdout
+    getLine >>= print . either id show . calculate . filter (/= ' ')
