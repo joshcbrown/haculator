@@ -7,7 +7,7 @@ import Data.Void (Void)
 import Text.Megaparsec (ParseErrorBundle, errorBundlePretty, runParser)
 
 eval :: Expr -> Rational
-eval (Constant x) = x
+eval (Number x) = x
 eval (Negate x) = negate (eval x)
 eval (BinOp op x y) = case op of
     Add -> eval x + eval y
@@ -16,4 +16,8 @@ eval (BinOp op x y) = case op of
     Divide -> eval x / eval y
 
 calculate :: (Fractional a) => String -> Either String a
-calculate = left errorBundlePretty . fmap (fromRational . eval) . runParser full "input" . T.pack
+calculate =
+    left errorBundlePretty
+        . fmap (fromRational . eval)
+        . runParser full "input"
+        . T.pack
