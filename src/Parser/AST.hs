@@ -96,7 +96,7 @@ expr =
         $ Atom atom
         >+ sops Prefix [Neg <$ char '-']
         >+ sops InfixL [Multiply <$ char '*' <|> Divide <$ char '/']
-        >+ sops InfixL [Add <$ char '+' <|> Subtract <$ char '/']
+        >+ sops InfixL [Add <$ char '+' <|> Subtract <$ char '-']
 
 full :: Parser Expr
 full = expr <* eof
