@@ -64,7 +64,6 @@ data Prec a where
 
 (>+) = Level
 infixl 5 >+
-(+<) = flip (>+)
 
 precedence :: Prec a -> Parser a
 precedence (Atom a) = a
