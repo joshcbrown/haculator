@@ -5,6 +5,7 @@ module Main (main) where
 import Calculator
 import Control.Monad (replicateM)
 import Data.Foldable (forM_)
+import Data.Ratio
 import Parser.AST
 import Test.Hspec
 import Test.Hspec.QuickCheck
@@ -14,27 +15,33 @@ import Test.QuickCheck
 --     arbitrary = do
 --         n <- choose ()
 
-showExpr (Add e m) = showExpr e ++ "+" ++ showMult m
-showExpr (Subtract e m) = showExpr e ++ "-" ++ showMult m
-showExpr (OfMult m) = showMult m
-showMult (Multiply m n) = showMult m ++ "*" ++ showNeg n
-showMult (Divide m n) = showMult m ++ "/" ++ showNeg n
-showMult (OfNegate n) = showNeg n
-showNeg (Neg n) = "-" ++ showNeg n
-showNeg (OfAtom a) = showAtom a
-showAtom (Number n) = show $ fromRational n
-showAtom (Parens e) = "(" ++ showExpr e ++ ")"
+exprToString :: Expr -> String
+exprToString (Add e1 e2) = "(" ++ exprToString e1 ++ "+" ++ multToString e2 ++ ")"
+exprToString (Subtract e1 e2) = "(" ++ exprToString e1 ++ "-" ++ multToString e2 ++ ")"
+exprToString (OfMult mult) = multToString mult
+
+multToString :: Mult -> String
+multToString (Multiply m1 m2) = "(" ++ multToString m1 ++ "*" ++ negateToString m2 ++ ")"
+multToString (Divide m1 m2) = "(" ++ multToString m1 ++ "/" ++ negateToString m2 ++ ")"
+multToString (OfNegate negate) = negateToString negate
+
+negateToString :: Negate -> String
+negateToString (Neg n) = "-(" ++ negateToString n ++ ")"
+negateToString (OfAtom atom) = atomToString atom
+
+atomToString :: Atom -> String
+atomToString (Number r) = (show . fromRational) r
+atomToString (Parens e) = "(" ++ exprToString e ++ ")"
 
 maxDepth :: Int
 maxDepth = 5
 
--- Instance for generating random Expr values
 instance Arbitrary Expr where
     arbitrary = genExpr 0
 
 genExpr :: Int -> Gen Expr
 genExpr depth
-    | depth >= maxDepth = OfMult . OfNegate . OfAtom . Number <$> arbitrary
+    | depth >= maxDepth = OfMult . OfNegate . OfAtom . Number <$> nonZero
     | otherwise =
         oneof
             [ Add <$> genExpr (depth + 1) <*> genMult (depth + 1)
@@ -42,13 +49,12 @@ genExpr depth
             , OfMult <$> genMult (depth + 1)
             ]
 
--- Instance for generating random Mult values
 instance Arbitrary Mult where
     arbitrary = genMult 0
 
 genMult :: Int -> Gen Mult
 genMult depth
-    | depth >= maxDepth = OfNegate . OfAtom . Number <$> arbitrary
+    | depth >= maxDepth = OfNegate . OfAtom . Number <$> nonZero
     | otherwise =
         oneof
             [ Multiply <$> genMult (depth + 1) <*> genNegate (depth + 1)
@@ -56,26 +62,27 @@ genMult depth
             , OfNegate <$> genNegate (depth + 1)
             ]
 
--- Instance for generating random Negate values
 instance Arbitrary Negate where
     arbitrary = genNegate 0
 
 genNegate :: Int -> Gen Negate
 genNegate depth
-    | depth >= maxDepth = OfAtom . Number <$> arbitrary
+    | depth >= maxDepth = OfAtom . Number <$> nonZero
     | otherwise =
         oneof
             [ Neg <$> genNegate (depth + 1)
             , OfAtom <$> genAtom (depth + 1)
             ]
 
--- Instance for generating random Atom values
+nonZero :: Gen Rational
+nonZero = suchThat arbitrary (/= 0)
+
 instance Arbitrary Atom where
     arbitrary = genAtom 0
 
 genAtom :: Int -> Gen Atom
 genAtom depth
-    | depth >= maxDepth = Number <$> arbitrary
+    | depth >= maxDepth = Number <$> nonZero
     | otherwise =
         oneof
             [ Parens <$> genExpr (depth + 1)
@@ -83,12 +90,12 @@ genAtom depth
             ]
 
 constructInput :: [Expr] -> [String] -> String
-constructInput ns (x : xs) = x ++ concat (zipWith (\n s -> showExpr n ++ s) ns xs)
+constructInput ns (x : xs) = x ++ concat (zipWith (\n s -> exprToString n ++ s) ns xs)
 
 getRandomInput :: IO ()
 getRandomInput = do
     ns <- sample' (arbitrary :: Gen Expr)
-    forM_ ns $ \expr -> putStr (showExpr expr ++ "\n\n\n")
+    forM_ ns $ \expr -> putStr (exprToString expr ++ "\n\n\n")
 
 main :: IO ()
 main = hspec $ do
