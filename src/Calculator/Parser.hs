@@ -12,10 +12,23 @@ import Text.Megaparsec.Char.Lexer
 import Text.Megaparsec.Debug
 
 data BinOp = Add | Subtract | Multiply | Divide
-    deriving (Show, Eq, Ord)
+    deriving (Eq, Ord, Enum, Bounded)
+
+instance Show BinOp where
+    show Add = "+"
+    show Subtract = "-"
+    show Multiply = "*"
+    show Divide = "/"
 
 data Expr = Number Rational | BinOp BinOp Expr Expr | Negate Expr
     deriving (Show)
+
+showExpr :: Expr -> String
+showExpr (Number x) = (show . fromRational) x
+showExpr (BinOp op x y) = "(" ++ showExpr x ++ show op ++ showExpr y ++ ")"
+showExpr (Negate x) = "-(" ++ showExpr x ++ ")"
+
+failInput = "((-((-2.0*-(-(((1.5+-((-(2.0)--(-(2.0)))))+0.5)))))"
 
 type Parser = Parsec Void T.Text
 
