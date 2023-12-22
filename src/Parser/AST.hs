@@ -9,6 +9,7 @@ import Parser.Lexer
 import Text.Megaparsec hiding (token)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
+import Text.Megaparsec.Debug (dbg)
 
 data Expr = Add Expr Mult | Subtract Expr Mult | OfMult Mult
     deriving (Show)
@@ -19,8 +20,10 @@ data Mult = Multiply Mult Negate | Divide Mult Negate | OfNegate Negate
 data Negate = Neg Negate | OfAtom Atom
     deriving (Show)
 
-data Atom = Number Rational | Var String | Parens Expr
+data Atom = Number Rational | Ident String | Parens Expr
     deriving (Show)
+
+data Equation = Equate Expr Expr
 
 instance Atom < Negate where upcast = OfAtom
 instance Negate < Mult where upcast = OfNegate
@@ -34,7 +37,7 @@ atom =
     choice
         [ between (symbol "(") (symbol ")") (Parens <$> expr)
         , Number . toRational <$> token (try (L.float :: Parser Double) <|> L.decimal)
-        , Var <$> ident
+        , Ident <$> ident
         ]
 
 expr :: Parser Expr
@@ -45,5 +48,11 @@ expr =
         >+ sops InfixL [Multiply <$ symbol "*" <|> Divide <$ symbol "/"]
         >+ sops InfixL [Add <$ symbol "+", Subtract <$ symbol "-"]
 
-full :: Parser Expr
-full = expr <* eof
+full :: Parser Equation
+full = Equate <$> expr <*> (symbol "=" *> expr <* eof)
+
+-- sure there's a nicer way
+-- full :: Parser (Either Expr Equation)
+-- full = do
+--     lhs <- expr
+--     (Left lhs <$ eof) <|> (Right <$> (Equate lhs <$> (expr <* eof)))
