@@ -1,7 +1,7 @@
 module Calculator where
 
 import Control.Arrow (ArrowChoice (left))
-import Control.Exception (ArithException (DivideByZero))
+import Control.Exception (ArithException (..))
 import Control.Monad (join)
 import Data.Bifunctor (Bifunctor (bimap))
 import qualified Data.Text as T
@@ -11,6 +11,7 @@ import Text.Megaparsec (errorBundlePretty, runParser)
 evalAtom :: Atom -> Either ArithException Rational
 evalAtom (Number x) = Right x
 evalAtom (Parens e) = eval e
+evalAtom (Var _) = Left Denormal
 
 evalNegate :: Negate -> Either ArithException Rational
 evalNegate (Neg n) = negate <$> evalNegate n

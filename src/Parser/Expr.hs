@@ -7,9 +7,8 @@ module Parser.Expr where
 import Control.Applicative
 import qualified Data.Text as T
 import Data.Void (Void)
+import Parser.Common
 import Text.Megaparsec
-
-type Parser = Parsec Void T.Text
 
 infixL :: (a -> b) -> Parser a -> Parser (b -> a -> b) -> Parser b
 infixL wrap p op = postfix wrap p (flip <$> op <*> p)

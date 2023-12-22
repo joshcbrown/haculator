@@ -20,5 +20,5 @@ main =
             ( do
                 putStr "> "
                 hFlush stdout
-                getLine >>= putStrLn . either id show . calculate . filter (/= ' ')
+                getLine >>= putStrLn . either id show . calculate
             )

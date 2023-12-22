@@ -22,13 +22,15 @@ extra-source-files: CHANGELOG.md
 library
     exposed-modules:  Calculator,
                       Parser.Expr,
-                      Parser.AST
+                      Parser.AST,
+                      Parser.Lexer,
+                      Parser.Common
 
     -- Modules included in this library but not exported.
     -- other-modules: Calculator.Parser
 
     -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+    default-extensions: OverloadedStrings
     build-depends:    base ^>=4.17.2.0,
                       megaparsec ^>=9.6.1,
                       containers,
