@@ -11,10 +11,6 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 import Test.QuickCheck
 
--- instance Arbitrary Negate where
---     arbitrary = do
---         n <- choose ()
-
 exprToString :: Expr -> String
 exprToString (Add e1 e2) = "(" ++ exprToString e1 ++ "+" ++ multToString e2 ++ ")"
 exprToString (Subtract e1 e2) = "(" ++ exprToString e1 ++ "-" ++ multToString e2 ++ ")"

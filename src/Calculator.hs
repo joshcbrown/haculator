@@ -1,13 +1,12 @@
 module Calculator where
 
-import Control.Arrow (ArrowChoice (left, right))
-import Control.Exception (ArithException (DivideByZero), catch, try)
+import Control.Arrow (ArrowChoice (left))
+import Control.Exception (ArithException (DivideByZero))
 import Control.Monad (join)
 import Data.Bifunctor (Bifunctor (bimap))
 import qualified Data.Text as T
-import Data.Void (Void)
 import Parser.AST
-import Text.Megaparsec (ParseErrorBundle, errorBundlePretty, runParser)
+import Text.Megaparsec (errorBundlePretty, runParser)
 
 evalAtom :: Atom -> Either ArithException Rational
 evalAtom (Number x) = Right x
