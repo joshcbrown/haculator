@@ -49,6 +49,7 @@ executable haculator
     -- other-extensions:
     build-depends:
         base ^>=4.17.2.0,
+        haskeline ^>=0.8.2,
         haculator
 
     hs-source-dirs:   app

@@ -2,6 +2,8 @@ module Main where
 
 import Calculator
 import Control.Monad
+import Data.Maybe (fromMaybe)
+import System.Console.Haskeline
 import System.IO
 
 welcomeString :: String
@@ -13,12 +15,8 @@ welcomeString =
     \| | | | (_| | (__| |_| | | (_| | || (_) | |   \n\
     \|_| |_|\\__,_|\\___|\\__,_|_|\\__,_|\\__\\___/|_|\n\n"
 
+loop :: InputT IO ()
+loop = getInputLine "> " >>= outputStrLn . either id show . calculate . fromMaybe "what" >> loop
+
 main :: IO ()
-main =
-    putStr welcomeString
-        >> forever
-            ( do
-                putStr "> "
-                hFlush stdout
-                getLine >>= putStrLn . either id show . calculate
-            )
+main = putStr welcomeString >> runInputT defaultSettings loop
