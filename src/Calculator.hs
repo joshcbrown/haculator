@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module Calculator where
 
 import Control.Arrow (Arrow (second), ArrowChoice (left))
@@ -58,7 +60,7 @@ evalMult (OfNegate n) = evalNegate n
 
 eval :: Expr -> EvalResult
 eval (Add e m) = M.unionWith (+) <$> eval e <*> evalMult m
-eval (Subtract e m) = M.unionWith (-) <$> eval e <*> evalMult m
+eval (Subtract e m) = unionWithDefault (-) 0 <$> eval e <*> evalMult m
 eval (OfMult m) = evalMult m
 
 getConst :: Added -> Rational
@@ -73,11 +75,18 @@ solve :: Equation -> Either ArithException (Solution Rational)
 solve (Equate e1 e2) = do
     m1 <- eval e1
     m2 <- eval e2
-    let lhs = getVar $ M.unionWith (-) m1 m2
-        rhs = getConst $ M.unionWith (-) m2 m1
+    let lhs = getVar $ unionWithDefault (-) 0 m1 m2
+        rhs = getConst $ unionWithDefault (-) 0 m2 m1
     case lhs of
         Nothing -> Left Denormal
         Just (name, coef) -> pure (name, rhs / coef)
+
+unionWithDefault :: (Ord k) => (v -> v -> v) -> v -> M.Map k v -> M.Map k v -> M.Map k v
+unionWithDefault f defaultv m1 m2 = M.unionWith f m1' m2'
+  where
+    fillIn m3 = M.union m3 . M.fromAscList . map (,defaultv) . M.keys
+    m1' = fillIn m1 m2
+    m2' = fillIn m2 m1
 
 calculate :: (Fractional a) => String -> Either String (Solution a)
 calculate =
