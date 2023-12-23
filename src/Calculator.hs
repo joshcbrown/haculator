@@ -1,6 +1,6 @@
 module Calculator where
 
-import Control.Arrow (ArrowChoice (left))
+import Control.Arrow (Arrow (second), ArrowChoice (left))
 import Control.Exception (ArithException (..))
 import Control.Monad (join)
 import Data.Bifunctor (Bifunctor (bimap))
@@ -16,7 +16,7 @@ data Term = Constant | Var String
 type Added = M.Map Term Rational
 
 type EvalResult = Either ArithException Added
-type Solution = M.Map Term Rational
+type Solution a = (Term, a)
 
 evalAtom :: Atom -> EvalResult
 evalAtom (Number x) = Right $ M.singleton Constant x
@@ -27,11 +27,12 @@ evalNegate :: Negate -> EvalResult
 evalNegate (Neg n) = fmap negate <$> evalNegate n
 evalNegate (OfAtom a) = evalAtom a
 
+isVar :: Term -> Bool
+isVar (Var _) = True
+isVar _ = False
+
 containsVar :: Added -> Bool
 containsVar m = any isVar (M.keys m)
-  where
-    isVar (Var _) = True
-    isVar _ = False
 
 -- horrendously ugly but i think it works
 multiply :: Added -> Added -> EvalResult
@@ -41,6 +42,7 @@ multiply m1 m2 = M.foldrWithKey (\k v -> (multiplyEach k v =<<)) (Right M.empty)
     new k v = case k of
         Constant -> Right $ (* v) <$> m2
         Var s -> if containsVar m2 then Left Denormal else Right $ M.singleton (Var s) (v * constVal)
+    -- TODO: should really error here if there's no constant
     constVal = fromMaybe 1 (M.lookup Constant m2)
 
 evalMult :: Mult -> EvalResult
@@ -59,16 +61,28 @@ eval (Add e m) = M.unionWith (+) <$> eval e <*> evalMult m
 eval (Subtract e m) = M.unionWith (-) <$> eval e <*> evalMult m
 eval (OfMult m) = evalMult m
 
--- solve :: Added -> Added -> Either ArithException Solution
--- solve e1 e2 = M.foldrWithKey
+getConst :: Added -> Rational
+getConst m = fromMaybe 0 (M.lookup Constant m)
 
-calculate :: (Fractional a) => String -> Either String (M.Map Term a)
+getVar :: Added -> Maybe (Term, Rational)
+getVar m = if length ts /= 1 then Nothing else Just $ head ts
+  where
+    ts = filter (isVar . fst) (M.toList m)
+
+solve :: Equation -> Either ArithException (Solution Rational)
+solve (Equate e1 e2) = do
+    m1 <- eval e1
+    m2 <- eval e2
+    let lhs = getVar $ M.unionWith (-) m1 m2
+        rhs = getConst $ M.unionWith (-) m2 m1
+    case lhs of
+        Nothing -> Left Denormal
+        Just (name, coef) -> pure (name, rhs / coef)
+
+calculate :: (Fractional a) => String -> Either String (Solution a)
 calculate =
     join
         . left errorBundlePretty
-        . fmap
-            ( bimap show (fmap fromRational)
-                . (\(Equate e1 e2) -> M.unionWith (+) <$> eval e1 <*> eval e2)
-            )
+        . fmap (bimap show (fmap fromRational) . solve)
         . runParser full "input"
         . T.pack
