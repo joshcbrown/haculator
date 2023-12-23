@@ -1,5 +1,6 @@
 module Parser.Lexer where
 
+import Control.Monad (void)
 import qualified Data.Text as T
 import Parser.Common
 import Text.Megaparsec hiding (token)
@@ -17,5 +18,5 @@ whitespace =
 token :: Parser a -> Parser a
 token = L.lexeme whitespace . try
 
-symbol :: T.Text -> Parser T.Text
-symbol = L.symbol whitespace
+symbol :: T.Text -> Parser ()
+symbol = void . L.symbol whitespace

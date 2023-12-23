@@ -3,6 +3,7 @@
 
 module Parser.AST where
 
+import Control.Monad (void)
 import Parser.Common
 import Parser.Expr
 import Parser.Lexer
@@ -45,7 +46,7 @@ expr =
     precedence
         $ Atom atom
         >+ sops Prefix [Neg <$ symbol "-"]
-        >+ sops InfixL [Multiply <$ symbol "*" <|> Divide <$ symbol "/"]
+        >+ sops InfixL [Multiply <$ (symbol "*" <|> void (lookAhead ident)), Divide <$ symbol "/"]
         >+ sops InfixL [Add <$ symbol "+", Subtract <$ symbol "-"]
 
 full :: Parser Equation
