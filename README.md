@@ -12,6 +12,8 @@ currently, there are two major features in the repl:
    subtraction, multiplication, division, negation, and parentheses;
 2. solving of linear equations involving one variable.
 
+![screenshot_2023-12-24T18:19:52](https://github.com/joshcbrown/haculator/assets/80245312/0df28f75-3e94-4be7-a4ab-8dbdaa73284c)
+
 powered by [haskeline](https://hackage.haskell.org/package/haskeline), the repl
 allows for most features you would expect in any rich terminal interface, like
 scrolling through history.
@@ -19,6 +21,7 @@ scrolling through history.
 ## roadmap
 i have a few plans for the project moving forward:
 - [ ] add exponentiation and logarithms to the expression grammar
+- [ ] add the ability to solve multiple linear equations
 - [ ] make a toy programming language with the calculator as a foundation
 
 ## credit
@@ -29,4 +32,5 @@ theory. i wrote a
 after finishing an MVP and then read the excellent
 [Design patterns for parser combinators (functional pearl)](https://dl.acm.org/doi/10.1145/3471874.3472984)
 on recommendation.
-the paper largely inspired the direction of the project from that point forward, and want to thank the authors for exposing the elegance of parser combinators so thoroughly.
+the paper largely inspired the direction of the project from that point forward,
+and i want to thank the authors for exposing the elegance of parser combinators so thoroughly.
