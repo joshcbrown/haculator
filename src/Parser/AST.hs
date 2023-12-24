@@ -25,6 +25,7 @@ data Atom = Number Rational | Ident String | Parens Expr
     deriving (Show)
 
 data Line = Equate Expr Expr | Expression Expr
+    deriving (Show)
 
 instance Atom < Negate where upcast = OfAtom
 instance Negate < Mult where upcast = OfNegate
@@ -37,7 +38,7 @@ atom :: Parser Atom
 atom =
     choice
         [ between (symbol "(") (symbol ")") (Parens <$> expr)
-        , Number . toRational <$> token (try (L.float :: Parser Double) <|> L.decimal)
+        , Number . toRational <$> token L.scientific
         , Ident <$> ident
         ]
 

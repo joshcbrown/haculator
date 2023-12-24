@@ -35,7 +35,6 @@ library
                       megaparsec ^>=9.6.1,
                       containers,
                       text,
-                      scientific
 
     hs-source-dirs:   src
     ghc-options: -Wall
@@ -65,4 +64,4 @@ test-suite haculator-test
     build-depends:    base ^>=4.17.2.0,
                       QuickCheck ^>=2.14.3,
                       hspec >=2.11.7,
-                      haculator
+                      haculator,

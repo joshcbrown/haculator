@@ -20,7 +20,7 @@ data EvalErr = Arith ArithException | NonLinear | NoVariable | TooManyVars [Term
     deriving (Show)
 
 data Solution a = Solved Term a
-    deriving (Functor)
+    deriving (Functor, Eq)
 
 instance (Show a) => Show (Solution a) where
     show (Solved (Var s) x) = s ++ show (Solved Constant x)
