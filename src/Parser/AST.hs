@@ -24,7 +24,7 @@ data Negate = Neg Negate | OfAtom Atom
 data Atom = Number Rational | Ident String | Parens Expr
     deriving (Show)
 
-data Equation = Equate Expr Expr
+data Line = Equate Expr Expr | Expression Expr
 
 instance Atom < Negate where upcast = OfAtom
 instance Negate < Mult where upcast = OfNegate
@@ -49,11 +49,8 @@ expr =
         >+ sops InfixL [Multiply <$ (symbol "*" <|> void (lookAhead ident)), Divide <$ symbol "/"]
         >+ sops InfixL [Add <$ symbol "+", Subtract <$ symbol "-"]
 
-full :: Parser Equation
-full = Equate <$> expr <*> (symbol "=" *> expr <* eof)
-
--- sure there's a nicer way
--- full :: Parser (Either Expr Equation)
--- full = do
---     lhs <- expr
---     (Left lhs <$ eof) <|> (Right <$> (Equate lhs <$> (expr <* eof)))
+full :: Parser Line
+full = do
+    lhs <- expr
+    (Equate lhs <$> (symbol "=" *> expr <* eof))
+        <|> (Expression lhs <$ eof)

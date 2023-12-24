@@ -16,7 +16,7 @@ welcomeString =
     \|_| |_|\\__,_|\\___|\\__,_|_|\\__,_|\\__\\___/|_|\n\n"
 
 loop :: InputT IO ()
-loop = getInputLine "> " >>= outputStrLn . either id show . calculate . fromMaybe "what" >> loop
+loop = getInputLine "> " >>= outputStrLn . either id (show :: Solution Rational -> String) . calculate . fromMaybe "what" >> loop
 
 main :: IO ()
 main = putStr welcomeString >> runInputT defaultSettings loop

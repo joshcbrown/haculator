@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TupleSections #-}
 
 module Calculator where
@@ -15,12 +16,18 @@ import Text.Megaparsec (errorBundlePretty, runParser)
 data Term = Constant | Var String
     deriving (Show, Eq, Ord)
 
-type Added = M.Map Term Rational
 data EvalErr = Arith ArithException | NonLinear | NoVariable | TooManyVars [Term]
     deriving (Show)
 
+data Solution a = Solved Term a
+    deriving (Functor)
+
+instance (Show a) => Show (Solution a) where
+    show (Solved (Var s) x) = s ++ show (Solved Constant x)
+    show (Solved Constant x) = " = " ++ show x
+
 type EvalResult a = Either EvalErr a
-type Solution a = (Term, a)
+type Added = M.Map Term Rational
 
 evalAtom :: Atom -> EvalResult Added
 evalAtom (Number x) = Right $ M.singleton Constant x
@@ -79,13 +86,14 @@ getVar m =
   where
     ts = filter (isVar . fst) (M.toList m)
 
-solve :: Equation -> EvalResult (Solution Rational)
+solve :: Line -> EvalResult (Solution Rational)
 solve (Equate e1 e2) = do
     m1 <- eval e1
     m2 <- eval e2
     (name, coef) <- getVar $ unionWithDefault (-) 0 m1 m2
     let rhs = getConst $ unionWithDefault (-) 0 m2 m1
-    if coef == 0 then Left NoVariable else pure (name, rhs / coef)
+    if coef == 0 then Left NoVariable else pure $ Solved name (rhs / coef)
+solve (Expression e) = Solved Constant . getConst <$> eval e
 
 unionWithDefault :: (Ord k) => (v -> v -> v) -> v -> M.Map k v -> M.Map k v -> M.Map k v
 unionWithDefault f defaultv m1 m2 = M.unionWith f m1' m2'
