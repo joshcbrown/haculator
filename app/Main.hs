@@ -1,12 +1,8 @@
 module Main where
 
 import Calculator
-import Control.Monad
-import Control.Monad.IO.Class
 import Data.Maybe (fromMaybe)
 import System.Console.Haskeline
-import System.Exit (exitSuccess)
-import System.IO
 
 welcomeString :: String
 welcomeString =
@@ -23,7 +19,7 @@ loop =
         >>= outputStrLn
         . either id show
         . calculate
-        . fromMaybe (error "bye!") -- FIXME: exit more gracefully
+        . fromMaybe (error "bye!") -- TODO: exit more gracefully
         >> loop
 
 main :: IO ()
