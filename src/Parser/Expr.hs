@@ -2,11 +2,15 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeOperators #-}
 
+{-
+ - parser structure borrowed from the excellent
+ - Design patterns for parser combinators (functional pearl)
+ - https://dl.acm.org/doi/10.1145/3471874.3472984
+-}
+
 module Parser.Expr where
 
 import Control.Applicative
-import qualified Data.Text as T
-import Data.Void (Void)
 import Parser.Common
 import Text.Megaparsec
 
