@@ -21,7 +21,10 @@ import Text.Megaparsec.Debug (dbg)
 data Expr = Add Expr Mult | Subtract Expr Mult | OfMult Mult
     deriving (Show)
 
-data Mult = Multiply Mult Negate | Divide Mult Negate | OfNegate Negate
+data Mult = Multiply Mult Expo | Divide Mult Expo | OfExpo Expo
+    deriving (Show)
+
+data Expo = Expo Negate Expo | OfNegate Negate
     deriving (Show)
 
 data Negate = Neg Negate | OfAtom Atom
@@ -34,7 +37,8 @@ data Line = Equate Expr Expr | Expression Expr
     deriving (Show)
 
 instance Atom < Negate where upcast = OfAtom
-instance Negate < Mult where upcast = OfNegate
+instance Negate < Expo where upcast = OfNegate
+instance Expo < Mult where upcast = OfExpo
 instance Mult < Expr where upcast = OfMult
 
 ident :: Parser String
@@ -53,6 +57,7 @@ expr =
     precedence
         $ Atom atom
         >+ sops Prefix [Neg <$ symbol "-"]
+        >+ sops InfixR [Expo <$ symbol "^"]
         >+ sops InfixL [Multiply <$ (symbol "*" <|> void (lookAhead ident)), Divide <$ symbol "/"]
         >+ sops InfixL [Add <$ symbol "+", Subtract <$ symbol "-"]
 

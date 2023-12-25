@@ -7,6 +7,7 @@ import Control.Arrow (ArrowChoice (left))
 import Control.Exception (ArithException (..))
 import Control.Monad (join)
 import Data.Bifunctor (Bifunctor (bimap))
+import Data.Either (isRight)
 import qualified Data.Map as M
 import Data.Maybe (fromJust, fromMaybe)
 import qualified Data.Text as T
@@ -38,6 +39,19 @@ evalNegate :: Negate -> EvalResult Added
 evalNegate (Neg n) = fmap negate <$> evalNegate n
 evalNegate (OfAtom a) = evalAtom a
 
+evalExpo :: Expo -> EvalResult Added
+evalExpo (Expo e i) = do
+    e' <- evalNegate e
+    i' <- evalExpo i
+    if any (isRight . getVar) [e', i']
+        then Left NonLinear
+        else Right $ M.singleton Constant (getConst e' `rationalPow` getConst i')
+evalExpo (OfNegate n) = evalNegate n
+
+-- possible that this slows things down a lot.
+rationalPow :: Rational -> Rational -> Rational
+rationalPow x y = toRational $ fromRational x ** fromRational y
+
 isVar :: Term -> Bool
 isVar (Var _) = True
 isVar _ = False
@@ -59,15 +73,15 @@ multiply m1 m2 = M.foldrWithKey (\k v -> (foilIter k v =<<)) (Right M.empty) m1
     constVal = fromJust (M.lookup Constant m2)
 
 evalMult :: Mult -> EvalResult Added
-evalMult (Multiply m n) = join $ multiply <$> evalMult m <*> evalNegate n
+evalMult (Multiply m n) = join $ multiply <$> evalMult m <*> evalExpo n
 evalMult (Divide m n) =
-    case evalNegate n of
+    case evalExpo n of
         e@(Left _) -> e
         (Right x) -> case M.lookup Constant x of
             Just 0 -> Left $ Arith RatioZeroDenominator
             Just y -> fmap (/ y) <$> evalMult m
             Nothing -> Left NonLinear
-evalMult (OfNegate n) = evalNegate n
+evalMult (OfExpo n) = evalExpo n
 
 eval :: Expr -> EvalResult Added
 eval (Add e m) = M.unionWith (+) <$> eval e <*> evalMult m
