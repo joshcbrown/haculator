@@ -17,7 +17,7 @@ import Text.Megaparsec (errorBundlePretty, runParser)
 data Term = Constant | Var String
     deriving (Show, Eq, Ord)
 
-data EvalErr = Arith ArithException | NonLinear | NoVariable | TooManyVars [Term]
+data EvalErr = Arith ArithException | NonLinear | NoVariable | TooManyVars [Term] | VarInExpression
     deriving (Show)
 
 data Solution a = Solved Term a
@@ -48,7 +48,7 @@ evalExpo (Expo e i) = do
         else Right $ M.singleton Constant (getConst e' `rationalPow` getConst i')
 evalExpo (OfNegate n) = evalNegate n
 
--- possible that this slows things down a lot.
+-- possible that this slows things down a lot
 rationalPow :: Rational -> Rational -> Rational
 rationalPow x y = toRational $ fromRational x ** fromRational y
 
@@ -107,7 +107,12 @@ solve (Equate e1 e2) = do
     (name, coef) <- getVar $ unionWithDefault (-) 0 m1 m2
     let rhs = getConst $ unionWithDefault (-) 0 m2 m1
     if coef == 0 then Left NoVariable else pure $ Solved name (rhs / coef)
-solve (Expression e) = Solved Constant . getConst <$> eval e
+solve (Expression e) =
+    if isRight (m >>= getVar)
+        then Left VarInExpression
+        else Solved Constant . getConst <$> m
+  where
+    m = eval e
 
 unionWithDefault :: (Ord k) => (v -> v -> v) -> v -> M.Map k v -> M.Map k v -> M.Map k v
 unionWithDefault f defaultv m1 m2 = M.unionWith f m1' m2'
