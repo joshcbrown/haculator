@@ -2,7 +2,7 @@
 
 module Calculator where
 
-import Calculator.LinearExpression
+import Calculator.LinearExpr
 import Control.Arrow (ArrowChoice (left))
 import Control.Monad (join)
 import Data.Bifunctor (Bifunctor (bimap))

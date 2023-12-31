@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TupleSections #-}
 
-module Calculator.LinearExpression (
+module Calculator.LinearExpr (
     Term (..),
     EvalErr (..),
     LinearExpr,
